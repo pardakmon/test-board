@@ -569,6 +569,11 @@
     
     <div class="board-topbar">
       <button type="button" class="secondary" style="background:#0284c7; color:#fff; border:none; font-weight:800;" onclick="location.href='index.html'">🏠 메인 허브</button>
+
+      <button type="button" class="secondary" onclick="changeMissionRole()" style="color:#0f172a; border-color:#cbd5e1; font-weight:800; padding:9px 10px !important;">
+        <span id="displayMissionRole">임무 설정</span>
+      </button>
+      
       <button type="button" class="secondary" id="btnBackToSetup" onclick="showSetupScreen()">← 설정으로 돌아가기</button>
       <button type="button" class="secondary" id="btnAdminApproval" onclick="openApprovalModal()" style="display:none; color:#0284c7; border-color:#bae6fd; font-weight:800; background:#f0f9ff;">
         👥 대원 승인 관리 <span id="pendingBadge" style="background:#ef4444; color:#fff; font-size:11px; padding:2px 7px; border-radius:10px; margin-left:4px; display:none;">0</span>
@@ -776,7 +781,21 @@ auth.onAuthStateChanged(user => {
 
       // 정상 통과 처리
       isReadOnly = false;
-      currentRole = sessionStorage.getItem('current_user_name') || (userData ? userData.name : '대원');
+      
+      // 💡 직위(임무) 입력 로직
+      let savedRole = sessionStorage.getItem('mission_role');
+      if (!savedRole) {
+          savedRole = prompt("현황판 기록에 남을 담당 직위(임무)를 입력해주세요.\n(예: 조사팀장, 감식 등)", "");
+          if (!savedRole || savedRole.trim() === "") {
+              savedRole = sessionStorage.getItem('current_user_name') || (userData ? userData.name : '대원');
+          }
+          sessionStorage.setItem('mission_role', savedRole.trim());
+      }
+      currentRole = sessionStorage.getItem('mission_role');
+      
+      // 상단바 버튼에 글씨 반영
+      const roleDisplay = document.getElementById('displayMissionRole');
+      if (roleDisplay) roleDisplay.innerText = currentRole;
 
       document.getElementById('loginScreen').style.display = 'none';
       document.getElementById('mainWrap').style.display = 'block';
@@ -2385,6 +2404,15 @@ function handleResetPassword() {
       }
     });
 }
+window.changeMissionRole = function() {
+    let newRole = prompt("변경할 담당 직위(임무)를 입력하세요:", currentRole);
+    if (newRole && newRole.trim() !== "") {
+        currentRole = newRole.trim();
+        sessionStorage.setItem('mission_role', currentRole);
+        const roleDisplay = document.getElementById('displayMissionRole');
+        if (roleDisplay) roleDisplay.innerText = currentRole;
+    }
+};
   
 </script>
 </body>
