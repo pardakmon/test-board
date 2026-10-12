@@ -272,10 +272,14 @@
             db.ref('users/' + user.uid).once('value').then((snapshot) => {
                 const userData = snapshot.val();
                 
-                // 관리자는 즉시 승인 통과
-                const isAdmin = ADMIN_EMAILS.includes(user.email);
+                // 💡 [무적 코드] 대소문자나 공백이 섞여도 무조건 관리자로 정확히 인식
+                const currentUserEmail = user.email ? user.email.trim().toLowerCase() : "";
+                const isAdmin = ADMIN_EMAILS.some(email => email.trim().toLowerCase() === currentUserEmail);
 
-                if (!isAdmin && userData && userData.status !== 'approved') {
+                // 💡 과거 가입자(approved)와 신규 가입자(status) 방식 모두 호환
+                const isApproved = isAdmin || (userData && (userData.status === 'approved' || userData.approved === true || userData.role === 'admin'));
+
+                if (!isApproved) {
                     // 미승인 대원인 경우 즉시 강제 로그아웃
                     auth.signOut();
                     showSection('login');
