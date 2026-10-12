@@ -664,6 +664,11 @@ auth.onAuthStateChanged(user => {
       const resetBtn = document.querySelector('button.danger');
       if (resetBtn) resetBtn.style.display = 'inline-block';
 
+      if (isAdmin) {
+          const btnAdmin = document.getElementById('btnAdminApproval');
+          if (btnAdmin) btnAdmin.style.display = 'inline-block';
+          if (typeof listenPendingUsers === 'function') listenPendingUsers();
+      }
       startDatabaseListener();
     }).catch(err => {
       console.error("사용자 정보 조회 실패:", err);
