@@ -393,6 +393,27 @@
       padding: 4px !important;
     }
   }
+  /* 📱 스마트폰 세로 모드: 요약 카드 4개를 무조건 한 줄에 압축 배치 */
+  @media (max-width: 640px) {
+    .stat-cards { 
+      gap: 4px !important; 
+      flex-wrap: nowrap !important; 
+    }
+    .stat-card { 
+      flex: 1 !important; 
+      min-width: 0 !important; 
+      padding: 12px 2px 10px !important; 
+    }
+    .stat-card .num { 
+      font-size: 22px !important; 
+    }
+    .stat-card .label { 
+      font-size: 10.5px !important; 
+      margin-top: 6px !important; 
+      letter-spacing: -0.5px !important; 
+      word-break: keep-all !important; 
+    }
+  }
 </style>
 </head>
 <body>
