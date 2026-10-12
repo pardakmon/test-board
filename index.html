@@ -26,7 +26,6 @@
 
         .container { width: 100%; max-width: 440px; }
 
-        /* 공통 카드 박스 */
         .glass-card {
             background: var(--card-bg);
             border-radius: 28px;
@@ -36,11 +35,9 @@
             text-align: center;
         }
 
-        .header-logo { width: 64px; height: 64px; margin-bottom: 16px; border-radius: 16px; object-fit: contain; }
         .header-title { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 6px; }
         .header-sub { font-size: 14px; color: var(--text-sub); margin-bottom: 24px; font-weight: 500; }
 
-        /* 입력 폼 */
         .input-group { margin-bottom: 14px; text-align: left; }
         .input-label { display: block; font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 6px; }
         .input-field {
@@ -56,7 +53,6 @@
         }
         .input-field:focus { border-color: var(--primary); background: #ffffff; box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15); }
 
-        /* 버튼 */
         .btn-primary {
             width: 100%;
             height: 50px;
@@ -75,7 +71,6 @@
         .switch-link { margin-top: 16px; font-size: 13px; color: var(--text-sub); }
         .switch-link span { color: var(--primary); font-weight: 700; cursor: pointer; text-decoration: underline; margin-left: 4px; }
 
-        /* 메인 허브 화면 (로그인 후) */
         .user-status {
             display: flex;
             align-items: center;
@@ -83,7 +78,7 @@
             background: #f8fafc;
             padding: 12px 16px;
             border-radius: 16px;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
             font-size: 14px;
             font-weight: 600;
         }
@@ -112,8 +107,41 @@
         .card-info h3 { font-size: 18px; font-weight: 800; margin-bottom: 4px; }
         .card-info p { font-size: 13px; color: var(--text-sub); }
 
+        /* 관리자 승인 관리 구역 */
+        .admin-panel {
+            margin-top: 24px;
+            padding: 16px;
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            border-radius: 18px;
+            text-align: left;
+        }
+        .admin-title { font-size: 14px; font-weight: 800; color: #b45309; margin-bottom: 10px; display: flex; justify-content: space-between; }
+        .pending-list { list-style: none; display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto; }
+        .pending-item {
+            background: #ffffff;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid #fed7aa;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+        }
+        .approve-btn {
+            background: #10b981;
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
         .hidden { display: none !important; }
-        .error-msg { color: #ef4444; font-size: 13px; margin-top: 10px; font-weight: 600; }
+        .error-msg { color: #ef4444; font-size: 13px; margin-top: 10px; font-weight: 600; line-height: 1.4; }
+        .info-msg { color: #0284c7; font-size: 13px; margin-top: 10px; font-weight: 600; line-height: 1.4; }
     </style>
 </head>
 <body>
@@ -136,6 +164,7 @@
             </div>
             <button type="submit" class="btn-primary">로그인</button>
             <div id="loginError" class="error-msg hidden"></div>
+            <div id="loginInfo" class="info-msg hidden"></div>
         </form>
 
         <div class="switch-link">
@@ -146,7 +175,7 @@
     <!-- 2. 회원가입 폼 -->
     <div id="signupSection" class="glass-card hidden">
         <h1 class="header-title">대원 신규 등록</h1>
-        <p class="header-sub">현황판 접근 권한 신청</p>
+        <p class="header-sub">관리자 승인 후 현황판 이용이 가능합니다</p>
 
         <form id="signupForm" onsubmit="handleSignup(event)">
             <div class="input-group">
@@ -174,17 +203,16 @@
         </div>
     </div>
 
-    <!-- 3. 메인 현황판 허브 (로그인 성공 시 노출) -->
+    <!-- 3. 메인 현황판 허브 (로그인 & 승인 완료 시 노출) -->
     <div id="hubSection" class="glass-card hidden">
         <div class="user-status">
-            <span>🚨 <b id="displayUserName">대원</b>님 환영합니다</span>
+            <span>🚨 <b id="displayUserName">대원</b>님 (<span id="displayUserTeam" style="color: #64748b; font-weight: normal;">소속</span>)</span>
             <button class="logout-btn" onclick="handleLogout()">로그아웃</button>
         </div>
 
         <h1 class="header-title" style="margin-bottom: 20px;">작전 현황판 선택</h1>
 
         <div class="menu-grid">
-            <!-- 공동주택 화재 바로가기 -->
             <div class="board-card fire" onclick="location.href='fire.html'">
                 <div class="card-icon">🏢</div>
                 <div class="card-info">
@@ -193,7 +221,6 @@
                 </div>
             </div>
 
-            <!-- 교통사고 바로가기 -->
             <div class="board-card accident" onclick="location.href='accident.html'">
                 <div class="card-icon">🚗</div>
                 <div class="card-info">
@@ -202,12 +229,22 @@
                 </div>
             </div>
         </div>
+
+        <!-- 4. 관리자 전용 대원 승인 패널 (관리자 접속 시에만 노출) -->
+        <div id="adminPanel" class="admin-panel hidden">
+            <div class="admin-title">
+                <span>🛡️ 가입 승인 대기 대원</span>
+                <span id="pendingCount">0명</span>
+            </div>
+            <ul id="pendingList" class="pending-list">
+                <!-- 승인 대기 목록이 여기에 동적으로 추가됩니다 -->
+            </ul>
+        </div>
     </div>
 </div>
 
 <script>
-
-// 🔥 실제 아파트 화재 보드 Firebase 연동 키
+    // 🔥 실제 Firebase 연동 키
     const firebaseConfig = {
         apiKey: "AIzaSyBaGmIgVoIzrQ1WRdn8BwrO0fPOECNl-mQ",
         authDomain: "apartment-fire-board-bydy.firebaseapp.com",
@@ -224,17 +261,48 @@
     const auth = firebase.auth();
     const db = firebase.database();
 
+    // 💡 관리자 계정 판별 (가입 승인 권한을 가질 이메일들)
+    // 원하시는 관리자 이메일을 따옴표 안에 넣어주세요. (여러 개 가능)
+    const ADMIN_EMAILS = ["admin@fire.go.kr", "pardakmon@gmail.com"];
+
     // 인증 상태 감시
     auth.onAuthStateChanged((user) => {
         if (user) {
-            // 유저 정보 가져오기
+            // 유저 DB 정보 확인
             db.ref('users/' + user.uid).once('value').then((snapshot) => {
                 const userData = snapshot.val();
+                
+                // 관리자는 즉시 승인 통과
+                const isAdmin = ADMIN_EMAILS.includes(user.email);
+
+                if (!isAdmin && userData && userData.status !== 'approved') {
+                    // 미승인 대원인 경우 즉시 강제 로그아웃
+                    auth.signOut();
+                    showSection('login');
+                    const errEl = document.getElementById('loginError');
+                    errEl.innerText = "⏳ 관리자 승인 대기 중인 계정입니다.\n관리자 승인 완료 후 이용 가능합니다.";
+                    errEl.classList.remove('hidden');
+                    return;
+                }
+
+                // 정상 승인 대원 또는 관리자
                 const userName = userData ? userData.name : user.email.split('@')[0];
+                const userTeam = userData ? userData.team : '대응단';
+                
                 document.getElementById('displayUserName').innerText = userName;
+                document.getElementById('displayUserTeam').innerText = userTeam;
+                
+                // 서브 보드에서 쓸 수 있도록 세션 스토리지에 이름 저장
                 sessionStorage.setItem('current_user_name', userName);
+                sessionStorage.setItem('current_user_team', userTeam);
+
+                showSection('hub');
+
+                // 관리자인 경우 승인 관리 패널 로드
+                if (isAdmin) {
+                    loadPendingUsers();
+                }
             });
-            showSection('hub');
         } else {
             showSection('login');
         }
@@ -251,43 +319,113 @@
     }
 
     function toggleAuth(type) {
+        document.getElementById('loginError').classList.add('hidden');
+        document.getElementById('loginInfo').classList.add('hidden');
+        document.getElementById('signupError').classList.add('hidden');
         showSection(type);
     }
 
-    // 로그인 처리
+    // 로그인
     function handleLogin(e) {
         e.preventDefault();
-        const email = document.getElementById('loginEmail').value;
+        const email = document.getElementById('loginEmail').value.trim();
         const pass = document.getElementById('loginPassword').value;
         const errEl = document.getElementById('loginError');
+        const infoEl = document.getElementById('loginInfo');
+        errEl.classList.add('hidden');
+        infoEl.classList.add('hidden');
 
         auth.signInWithEmailAndPassword(email, pass).catch((err) => {
-            errEl.innerText = "로그인 실패: " + err.message;
+            errEl.innerText = "로그인 실패: 아이디 또는 비밀번호를 확인해주세요.";
             errEl.classList.remove('hidden');
         });
     }
 
-    // 회원가입 처리
+    // 회원가입 신청
     function handleSignup(e) {
         e.preventDefault();
-        const name = document.getElementById('regName').value;
-        const team = document.getElementById('regTeam').value;
-        const email = document.getElementById('regEmail').value;
+        const name = document.getElementById('regName').value.trim();
+        const team = document.getElementById('regTeam').value.trim();
+        const email = document.getElementById('regEmail').value.trim();
         const pass = document.getElementById('regPassword').value;
         const errEl = document.getElementById('signupError');
+        errEl.classList.add('hidden');
+
+        // 관리자 이메일 목록에 있으면 처음부터 자동 승인, 일반 대원은 pending(대기)
+        const initialStatus = ADMIN_EMAILS.includes(email) ? 'approved' : 'pending';
 
         auth.createUserWithEmailAndPassword(email, pass).then((cred) => {
+            // DB에 정보 저장
             return db.ref('users/' + cred.user.uid).set({
                 name: name,
                 team: team,
                 email: email,
+                status: initialStatus,
                 createdAt: new Date().toISOString()
+            }).then(() => {
+                if (initialStatus === 'pending') {
+                    // 가입 즉시 자동 로그인된 세션을 바로 끊어줌 (핵심!)
+                    auth.signOut().then(() => {
+                        showSection('login');
+                        const infoEl = document.getElementById('loginInfo');
+                        infoEl.innerText = "✅ 가입 신청이 완료되었습니다.\n관리자 승인 후 로그인할 수 있습니다.";
+                        infoEl.classList.remove('hidden');
+                        document.getElementById('signupForm').reset();
+                    });
+                }
             });
         }).catch((err) => {
-            errEl.innerText = "가입 실패: " + err.message;
+            errEl.innerText = "가입 신청 실패: " + err.message;
             errEl.classList.remove('hidden');
         });
     }
+
+    // 관리자: 대기 목록 불러오기 & 실시간 감시
+    function loadPendingUsers() {
+        const adminPanel = document.getElementById('adminPanel');
+        adminPanel.classList.remove('hidden');
+
+        db.ref('users').on('value', (snapshot) => {
+            const listEl = document.getElementById('pendingList');
+            listEl.innerHTML = '';
+            let count = 0;
+
+            snapshot.forEach((child) => {
+                const u = child.val();
+                const uid = child.key;
+
+                if (u.status === 'pending') {
+                    count++;
+                    const li = document.createElement('li');
+                    li.className = 'pending-item';
+                    li.innerHTML = `
+                        <div>
+                            <b>${u.name}</b> (${u.team})<br>
+                            <span style="font-size: 11px; color: #64748b;">${u.email}</span>
+                        </div>
+                        <button class="approve-btn" onclick="approveUser('${uid}')">승인</button>
+                    `;
+                    listEl.appendChild(li);
+                }
+            });
+
+            document.getElementById('pendingCount').innerText = count + '명';
+            if (count === 0) {
+                listEl.innerHTML = '<li style="font-size:12px; color:#94a3b8; text-align:center; padding:8px;">대기 중인 대원이 없습니다.</li>';
+            }
+        });
+    }
+
+    // 관리자: 원클릭 승인 실행
+    window.approveUser = function(uid) {
+        if (confirm('이 대원의 접속을 승인하시겠습니까?')) {
+            db.ref('users/' + uid).update({
+                status: 'approved'
+            }).then(() => {
+                alert('승인 완료되었습니다.');
+            });
+        }
+    };
 
     // 로그아웃
     function handleLogout() {
