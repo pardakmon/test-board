@@ -1837,17 +1837,17 @@ function render(){
   colgroupHtml += '</colgroup>';
   
   let html = '';
+  let lockBtnHtml = ''; // 🌟 표랑 버튼을 분리!
   
   if (!isReadOnly) {
     const lockBtnText = isLayoutLocked ? '🔒 세대 수정 잠금해제' : '🔓 수정 완료 (터치하여 잠금)';
     
-    // 🌟 디자인 업그레이드: 잠금/해제 시 눈에 확 띄도록 색상 변경
     const lockBtnStyle = isLayoutLocked 
         ? 'background:rgba(255,255,255,0.9); color:#475569; border:1px solid #cbd5e1; box-shadow:0 4px 12px rgba(0,0,0,0.1);' 
         : 'background:#ef4444; color:#fff; border:none; box-shadow:0 4px 12px rgba(239,68,68,0.4);';
     
-    // 🌟 핵심: 화면 하단 중앙에 고정(fixed)하고, 캡처 시 무시(data-html2canvas-ignore)하도록 설정
-    html += `<div style="position:fixed; bottom:24px; left:50%; transform:translateX(-50%); z-index:9999;" data-html2canvas-ignore="true">
+    // 👇 html += 가 아니라 lockBtnHtml = 로 변경!
+    lockBtnHtml = `<div style="position:fixed; bottom:24px; left:50%; transform:translateX(-50%); z-index:9999;" data-html2canvas-ignore="true">
        <button type="button" onclick="toggleLayoutLock()" style="padding:12px 24px; font-size:14px; font-weight:800; border-radius:30px; cursor:pointer; backdrop-filter:blur(4px); transition:all 0.2s ease; ${lockBtnStyle}">${lockBtnText}</button>
     </div>`;
   }
@@ -2004,6 +2004,15 @@ const controlsHtml = isReadOnly ? '' : (
   
   html += '</tbody></table>';
   document.getElementById('boardHolder').innerHTML = html;
+
+  // 🌟 [해결] 표 안쪽(boardHolder)이 아니라 바깥쪽(boardScreen)에 둥근 버튼을 따로 배치하여 잘림 방지!
+  let safeBtnArea = document.getElementById('safeLockBtnArea');
+  if(!safeBtnArea) {
+    safeBtnArea = document.createElement('div');
+    safeBtnArea.id = 'safeLockBtnArea';
+    document.getElementById('boardScreen').appendChild(safeBtnArea);
+  }
+  safeBtnArea.innerHTML = lockBtnHtml;
 
   let fn = '';
   if(evacSelfTotal>0) fn += `<div class="fn-line">※ 자력대피 ${evacSelfTotal}명: ${evacDetail.join(', ')}</div>`;
