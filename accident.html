@@ -638,11 +638,14 @@ window.addEventListener('DOMContentLoaded', () => {
 
 auth.onAuthStateChanged(user => {
   if (user) {
-    // 💡 DB에서 승인 여부 검사 (status === 'approved' 또는 approved === true)
     db.ref('users/' + user.uid).once('value').then(snapshot => {
       const userData = snapshot.val();
 
-      const isApproved = userData && (userData.status === 'approved' || userData.approved === true || userData.role === 'admin');
+      // 💡 메인과 동일한 관리자 권한 프리패스 적용
+      const ADMIN_EMAILS = ["admin@fire.go.kr", "여기에_대원님_이메일_입력"]; 
+      const isAdmin = ADMIN_EMAILS.includes(user.email);
+
+      const isApproved = isAdmin || (userData && (userData.status === 'approved' || userData.approved === true || userData.role === 'admin'));
 
       if (!isApproved) {
         alert("⏳ 관리자 승인 대기 중인 계정입니다.");
@@ -654,7 +657,6 @@ auth.onAuthStateChanged(user => {
       document.getElementById('loginScreen').style.display = 'none';
       document.getElementById('mainWrap').style.display = 'block';
 
-      // 상단바 버튼 상태 정비
       document.getElementById('btnBackToSetup').style.display = 'inline-block';
       document.getElementById('btnLogout').style.display = 'inline-block';
       document.getElementById('btnExitSpectator').style.display = 'none';
@@ -668,7 +670,6 @@ auth.onAuthStateChanged(user => {
       location.href = 'index.html';
     });
   } else {
-    // 비로그인 상태로 accident.html 주소로 직접 들어왔다면 관전 모드가 아닐 시 메인 로그인으로 이동
     if (!isSpectator) {
       location.href = 'index.html';
     }
