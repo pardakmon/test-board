@@ -170,6 +170,9 @@
         <div class="switch-link">
             계정이 없으신가요?<span onclick="toggleAuth('signup')">대원 회원가입</span>
         </div>
+        <div class="switch-link" style="margin-top: 8px;">
+            비밀번호를 잊으셨나요?<span onclick="handleResetPassword()">비밀번호 찾기</span>
+        </div>
     </div>
 
     <!-- 2. 회원가입 폼 -->
@@ -180,15 +183,19 @@
         <form id="signupForm" onsubmit="handleSignup(event)">
             <div class="input-group">
                 <label class="input-label">성명</label>
-                <input type="text" id="regName" class="input-field" placeholder="홍길동" required>
+                <input type="text" id="regName" class="input-field" placeholder="예: 백기태" required>
             </div>
             <div class="input-group">
                 <label class="input-label">소속 (센터/팀)</label>
-                <input type="text" id="regTeam" class="input-field" placeholder="예: 현장대응단 / 1팀" required>
+                <input type="text" id="regTeam" class="input-field" placeholder="예: 현장대응단 1팀" required>
             </div>
             <div class="input-group">
                 <label class="input-label">아이디 (이메일)</label>
                 <input type="email" id="regEmail" class="input-field" placeholder="example@fire.go.kr" required>
+                <!-- 👇 실제 메일 안내 문구 추가 -->
+                <div style="font-size:11px; color:#64748b; margin-top:6px; line-height:1.3;">
+                    ※ 비밀번호 분실 시 재설정 메일이 발송되므로, 실제 수신 가능한 이메일을 입력해 주세요.
+                </div>
             </div>
             <div class="input-group">
                 <label class="input-label">비밀번호 (6자리 이상)</label>
@@ -437,6 +444,31 @@
         auth.signOut();
         sessionStorage.clear();
     }
+    // 💡 비밀번호 찾기 (재설정 메일 자동 발송)
+    window.handleResetPassword = function() {
+        const currentInputEmail = document.getElementById('loginEmail') ? document.getElementById('loginEmail').value.trim() : '';
+        const email = prompt("비밀번호를 재설정할 이메일 아이디를 입력해주세요:", currentInputEmail);
+
+        if (email === null) return; // 취소 누른 경우
+        if (!email.trim()) {
+            alert("이메일 주소를 입력해주세요.");
+            return;
+        }
+
+        auth.sendPasswordResetEmail(email.trim())
+            .then(() => {
+                alert(`✅ 비밀번호 재설정 메일이 발송되었습니다!\n[${email.trim()}] 메일함을 확인하여 비밀번호를 변경해 주세요.`);
+            })
+            .catch(error => {
+                if (error.code === 'auth/user-not-found') {
+                    alert("등록되지 않은 이메일 주소입니다.");
+                } else if (error.code === 'auth/invalid-email') {
+                    alert("올바른 이메일 형식을 입력해주세요. (예: ydp01@seoul.go.kr)");
+                } else {
+                    alert("메일 발송 실패: " + error.message);
+                }
+            });
+    };
 </script>
 </body>
 </html>
