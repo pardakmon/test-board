@@ -790,7 +790,10 @@ auth.onAuthStateChanged(user => {
 
       // 💡 메인과 동일한 관리자 권한 프리패스 적용
       const ADMIN_EMAILS = ["youngbal3@seoul.go.kr"]; 
-      const isAdmin = ADMIN_EMAILS.includes(user.email);
+      
+      // 💡 [무적 코드] 대소문자나 공백이 섞여도 무조건 관리자로 정확히 인식
+      const currentUserEmail = user.email ? user.email.trim().toLowerCase() : "";
+      const isAdmin = ADMIN_EMAILS.some(email => email.trim().toLowerCase() === currentUserEmail);
 
       // 승인 조건: 관리자 프리패스 OR 데이터베이스 승인 완료
       const isApproved = isAdmin || (userData && (userData.status === 'approved' || userData.approved === true || userData.role === 'admin'));
