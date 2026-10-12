@@ -396,6 +396,19 @@
 </style>
 </head>
 <body>
+  
+<!-- 🌟 임무 입력 전용 커스텀 팝업 -->
+<div id="roleModal" class="overlay" style="display:none; z-index:55000;">
+  <div class="modal" style="width:90vw; max-width:320px; padding:24px; text-align:center;">
+    <h3 style="margin:0 0 16px; color:var(--navy); font-size:18px; font-weight:800; border:none;">담당 직위(임무) 설정</h3>
+    <input type="text" id="roleInput" placeholder="예: 조사팀장, 감식 등" style="width:100%; padding:12px; border:1px solid #cbd5e1; border-radius:10px; font-size:14.5px; box-sizing:border-box; margin-bottom:8px; text-align:center;" onkeydown="if(event.key==='Enter') confirmRole()">
+    
+    <!-- 👇 빈칸일 때 뜰 빨간색 경고창 -->
+    <div id="roleError" style="color:#e11d48; font-size:12.5px; margin-bottom:12px; display:none; font-weight:700; background:#fff1f2; padding:8px; border-radius:8px;">담당 직위(임무)를 입력해주세요.</div>
+    
+    <button type="button" onclick="confirmRole()" style="width:100%; padding:12px; background:#0284c7; color:#fff; border:none; border-radius:12px; font-weight:800; font-size:15px; cursor:pointer;">입력 완료</button>
+  </div>
+</div>
 
 <!-- 🔒 로그인 화면 -->
 <div id="loginScreen">
@@ -782,20 +795,16 @@ auth.onAuthStateChanged(user => {
       // 정상 통과 처리
       isReadOnly = false;
       
-      // 💡 직위(임무) 입력 로직
+      // 💡 직위(임무) 입력 로직 (커스텀 팝업 띄우기)
       let savedRole = sessionStorage.getItem('mission_role');
       if (!savedRole) {
-          savedRole = prompt("현황판 기록에 남을 담당 직위(임무)를 입력해주세요.\n(예: 조사팀장, 감식 등)", "");
-          if (!savedRole || savedRole.trim() === "") {
-              savedRole = sessionStorage.getItem('current_user_name') || (userData ? userData.name : '대원');
-          }
-          sessionStorage.setItem('mission_role', savedRole.trim());
+          // 저장된 직위가 없으면 무조건 팝업 띄워서 화면을 막음
+          document.getElementById('roleModal').style.display = 'flex';
+      } else {
+          currentRole = savedRole;
+          const roleDisplay = document.getElementById('displayMissionRole');
+          if (roleDisplay) roleDisplay.innerText = currentRole;
       }
-      currentRole = sessionStorage.getItem('mission_role');
-      
-      // 상단바 버튼에 글씨 반영
-      const roleDisplay = document.getElementById('displayMissionRole');
-      if (roleDisplay) roleDisplay.innerText = currentRole;
 
       document.getElementById('loginScreen').style.display = 'none';
       document.getElementById('mainWrap').style.display = 'block';
@@ -2404,14 +2413,33 @@ function handleResetPassword() {
       }
     });
 }
-window.changeMissionRole = function() {
-    let newRole = prompt("변경할 담당 직위(임무)를 입력하세요:", currentRole);
-    if (newRole && newRole.trim() !== "") {
-        currentRole = newRole.trim();
-        sessionStorage.setItem('mission_role', currentRole);
-        const roleDisplay = document.getElementById('displayMissionRole');
-        if (roleDisplay) roleDisplay.innerText = currentRole;
+// 💡 직위 입력 완료 버튼을 눌렀을 때 실행되는 함수
+window.confirmRole = function() {
+    const roleVal = document.getElementById('roleInput').value.trim();
+    const errEl = document.getElementById('roleError');
+    
+    // 입력칸이 비어있으면 빨간색 경고창 띄우고 통과 안 시켜줌!
+    if (!roleVal) {
+        errEl.style.display = 'block';
+        return; 
     }
+    
+    // 입력 성공 시 경고창 숨기고 데이터 저장 후 팝업 닫기
+    errEl.style.display = 'none';
+    currentRole = roleVal;
+    sessionStorage.setItem('mission_role', currentRole);
+    
+    const roleDisplay = document.getElementById('displayMissionRole');
+    if (roleDisplay) roleDisplay.innerText = currentRole;
+    
+    document.getElementById('roleModal').style.display = 'none';
+};
+
+// 💡 상단바 버튼을 눌러서 임무를 다시 바꿀 때
+window.changeMissionRole = function() {
+    document.getElementById('roleInput').value = currentRole || "";
+    document.getElementById('roleError').style.display = 'none'; // 기존 경고 숨기기
+    document.getElementById('roleModal').style.display = 'flex';
 };
   
 </script>
