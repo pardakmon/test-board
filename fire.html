@@ -570,8 +570,8 @@
   <div id="boardScreen" style="display:none;">
     
     <div class="board-topbar">
+      <button type="button" class="secondary" style="background:#0284c7; color:#fff; border:none; font-weight:800;" onclick="location.href='index.html'">🏠 메인 허브</button>
       <button type="button" class="secondary" id="btnBackToSetup" onclick="showSetupScreen()">← 설정으로 돌아가기</button>
-
       <button type="button" class="secondary" id="btnAdminApproval" onclick="openApprovalModal()" style="display:none; color:#0284c7; border-color:#bae6fd; font-weight:800; background:#f0f9ff;">
         👥 대원 승인 관리 <span id="pendingBadge" style="background:#ef4444; color:#fff; font-size:11px; padding:2px 7px; border-radius:10px; margin-left:4px; display:none;">0</span>
       </button>
@@ -759,48 +759,42 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 auth.onAuthStateChanged(user => {
-  if (isSigningUp) return; // 가입 신청 중에는 화면 진입 방지
-
   if (user) {
-    // 💡 DB에서 관리자 승인(approved: true) 여부 검사
+    // 💡 메인에서 승인된 대원인지 DB 확인
     db.ref('users/' + user.uid).once('value').then(snapshot => {
       const userData = snapshot.val();
 
-      // 계정 정보가 DB에 존재하지만 아직 미승인(false) 상태인 경우 차단
-      if (userData && userData.approved !== true) {
-        alert("⏳ 관리자 승인 대기 중인 계정입니다.\n관리자 승인 완료 후 이용 가능합니다.");
-        auth.signOut();
+      // 메인 index.html의 승인 상태(status === 'approved' 또는 approved === true)
+      const isApproved = userData && (userData.status === 'approved' || userData.approved === true);
+
+      if (!isApproved) {
+        alert("⏳ 관리자 승인 대기 중인 계정입니다.");
+        location.href = 'index.html';
         return;
       }
 
-      const btnAdmin = document.getElementById('btnAdminApproval');
-      if (userData && userData.role === 'admin') {
-        if (btnAdmin) btnAdmin.style.display = 'inline-block';
-        listenPendingUsers(); // 대기 인원수 실시간 감시 시작
-      } else {
-        if (btnAdmin) btnAdmin.style.display = 'none';
-      }
-
-      // 승인 완료된 대원 또는 기존 관리자 계정 통과
+      // 정상 접속 처리: 로그인 화면 숨기고 본체 열기
       isReadOnly = false;
-      currentRole = localStorage.getItem('myRole') || (userData ? userData.name : '대원'); 
+      // 메인에서 넘어온 대원 이름/팀이 있으면 우선 적용
+      currentRole = sessionStorage.getItem('current_user_name') || (userData ? userData.name : '대원');
+
       document.getElementById('loginScreen').style.display = 'none';
       document.getElementById('mainWrap').style.display = 'block';
-      
+
       document.getElementById('btnLogout').style.display = 'inline-block';
       document.getElementById('btnLoginFromView').style.display = 'none';
       document.getElementById('btnBackToSetup').style.display = 'inline-block';
       document.getElementById('btnResetDB').style.display = 'inline-block';
-      
+
       startDatabaseListener();
     }).catch(err => {
       console.error("사용자 정보 조회 실패:", err);
-      auth.signOut();
+      location.href = 'index.html';
     });
   } else {
-    if(!isReadOnly) {
-      document.getElementById('loginScreen').style.display = 'flex';
-      document.getElementById('mainWrap').style.display = 'none';
+    // 비로그인 상태로 fire.html 주소로 직접 들어왔다면 관전 모드가 아닐 시 메인 로그인으로 이동
+    if (!isReadOnly) {
+      location.href = 'index.html';
     }
   }
 });
@@ -909,7 +903,8 @@ function doLogin() {
 function doLogout() {
   if(confirm("로그아웃 하시겠습니까?")) {
     auth.signOut().then(() => {
-      location.reload();
+      sessionStorage.clear();
+      location.href = 'index.html';
     });
   }
 }
