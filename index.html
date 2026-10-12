@@ -394,7 +394,7 @@
                 const u = child.val();
                 const uid = child.key;
 
-                if (u.status === 'pending') {
+                if (u.status === 'pending' || u.approved === false) {
                     count++;
                     const li = document.createElement('li');
                     li.className = 'pending-item';
@@ -420,7 +420,8 @@
     window.approveUser = function(uid) {
         if (confirm('이 대원의 접속을 승인하시겠습니까?')) {
             db.ref('users/' + uid).update({
-                status: 'approved'
+                status: 'approved',
+                approved: true
             }).then(() => {
                 alert('승인 완료되었습니다.');
             });
