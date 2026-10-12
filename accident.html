@@ -642,7 +642,7 @@ auth.onAuthStateChanged(user => {
       const userData = snapshot.val();
 
       // 💡 메인과 동일한 관리자 권한 프리패스 적용
-      const ADMIN_EMAILS = ["admin@fire.go.kr", "여기에_대원님_이메일_입력"]; 
+      const ADMIN_EMAILS = ["youngbal3@seou.go.kr"]; 
       const isAdmin = ADMIN_EMAILS.includes(user.email);
 
       const isApproved = isAdmin || (userData && (userData.status === 'approved' || userData.approved === true || userData.role === 'admin'));
