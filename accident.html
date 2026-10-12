@@ -434,6 +434,7 @@
 
   <div id="boardScreen" style="display:none;">
     <div class="board-topbar">
+      <button type="button" class="secondary" style="background:#0284c7; color:#fff; border:none; font-weight:800;" onclick="location.href='index.html'">🏠 메인 허브</button>
       <button type="button" class="secondary" id="btnBackToSetup" onclick="showSetupScreen()">← 설정으로 돌아가기</button>
 
       <!-- 👇 [추가] 관리자(admin) 전용 승인 관리 버튼 👇 -->
@@ -637,19 +638,17 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-// --- [인증 및 로그인 처리] ---
 auth.onAuthStateChanged(user => {
-  if (isSigningUp) return;
-
   if (user) {
-    // 💡 DB에서 관리자 승인(approved: true) 여부 검사
+    // 💡 DB에서 승인 여부 검사 (status === 'approved' 또는 approved === true)
     db.ref('users/' + user.uid).once('value').then(snapshot => {
       const userData = snapshot.val();
 
-      // 승인 대기 중 계정 차단
-      if (userData && userData.approved !== true) {
-        alert("⏳ 관리자 승인 대기 중인 계정입니다.\n관리자 승인 완료 후 이용 가능합니다.");
-        auth.signOut();
+      const isApproved = userData && (userData.status === 'approved' || userData.approved === true || userData.role === 'admin');
+
+      if (!isApproved) {
+        alert("⏳ 관리자 승인 대기 중인 계정입니다.");
+        location.href = 'index.html';
         return;
       }
 
@@ -662,27 +661,18 @@ auth.onAuthStateChanged(user => {
       document.getElementById('btnLogout').style.display = 'inline-block';
       document.getElementById('btnExitSpectator').style.display = 'none';
 
-      // 관리자 권한 확인
-      const btnAdmin = document.getElementById('btnAdminApproval');
-      if (userData && userData.role === 'admin') {
-        if (btnAdmin) btnAdmin.style.display = 'inline-block';
-        listenPendingUsers(); // 실시간 승인 대기자 감시 시작
-      } else {
-        if (btnAdmin) btnAdmin.style.display = 'none';
-      }
-
       const resetBtn = document.querySelector('button.danger');
       if (resetBtn) resetBtn.style.display = 'inline-block';
 
       startDatabaseListener();
     }).catch(err => {
       console.error("사용자 정보 조회 실패:", err);
-      auth.signOut();
+      location.href = 'index.html';
     });
   } else {
+    // 비로그인 상태로 accident.html 주소로 직접 들어왔다면 관전 모드가 아닐 시 메인 로그인으로 이동
     if (!isSpectator) {
-      document.getElementById('loginScreen').style.display = 'flex';
-      document.getElementById('mainWrap').style.display = 'none';
+      location.href = 'index.html';
     }
     if (isListening) {
       boardRef.off('value');
@@ -709,7 +699,10 @@ function doLogin() {
 
 function doLogout() {
   if(confirm("로그아웃 하시겠습니까?")) {
-    auth.signOut();
+    auth.signOut().then(() => {
+      sessionStorage.clear();
+      location.href = 'index.html';
+    });
   }
 }
 
